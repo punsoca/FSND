@@ -118,21 +118,21 @@ def create_app(test_config=None):
   of the questions list in the "List" tab.  
   '''
 
-  @app.route('/add', methods=['POST'])
-  def add_new_question():
-      body =  request.get_json()
+#   @app.route('/add', methods=['POST'])
+#   def add_new_question():
+#       body =  request.get_json()
 
-      question = Question(question=body.get('question'),answer=body.get('answer'),difficulty=body.get('difficulty'),
-                          category=body.get('category'))
+#       question = Question(question=body.get('question'),answer=body.get('answer'),difficulty=body.get('difficulty'),
+#                           category=body.get('category'))
       
-      try: 
-          question.insert()
-          return jsonify({
-              "success": True
-          })
+#       try: 
+#           question.insert()
+#           return jsonify({
+#               "success": True
+#           })
       
-      except:
-          abort(422)
+#       except:
+#           abort(422)
 
 
   '''
@@ -146,16 +146,41 @@ def create_app(test_config=None):
   Try using the word "title" to start. 
   '''
   @app.route('/questions', methods=['POST'])
-  def search_question():
+  def search_or_post_question():
       body =  request.get_json()
+      question = body.get('question', None)
+      answer = body.get('answer', None)
+      difficulty = body.get('difficulty', None)
+      category = body.get('category', None)
       search_term = body.get('searchTerm', None)
 
-      results = Question.query.filter(Question.question.ilike("%{}%".format(search_term))).\
-                         order_by("id").all()
+      if search_term:
+          results = Question.query.filter(Question.question.ilike("%{}%".format(search_term))).\
+                             order_by("id").all()
+          questions = [question.format() for question in results]
+          return jsonify(json_response(questions, len(results), None))
+      else:
+          # question = Question(question=body.get('question'),answer=body.get('answer'),difficulty=body.get('difficulty'),
+          #                     category=body.get('category'))
+          question = Question(question=question,answer=answer,difficulty=difficulty,category=category)
       
-      questions = [question.format() for question in results]
+          try: 
+              question.insert()
+              return jsonify({
+                  "success": True
+              })
+            
+          except:
+              abort(422)
+
+    #   results = Question.query.filter(Question.question.ilike("%{}%".format(search_term))).\
+    #                      order_by("id").all()
       
-      return jsonify(json_response(questions, len(results), None))
+    #   questions = [question.format() for question in results]
+      
+    #   return jsonify(json_response(questions, len(results), None))
+
+
 
   '''
   @TODO: 
@@ -172,6 +197,7 @@ def create_app(test_config=None):
       questions = [question.format() for question in results]
       return jsonify(json_response(questions, len(results),cat_id))
 
+  # json_response function
   def json_response(results, len_results, cat_id=None, categories=None):
 
       if cat_id:
@@ -183,8 +209,7 @@ def create_app(test_config=None):
           return {
               'questions': results,
               'total_questions': len_results,
-              # 'category': db.session.query(Category.type).filter(Category.id==1).one()[0]
-              'category': type,
+              'current_category': type,
               'categories': {category.id:category.type for category in categories}
           }
         
@@ -192,8 +217,7 @@ def create_app(test_config=None):
           return {
               'questions': results,
               'total_questions': len_results,
-              # 'category': db.session.query(Category.type).filter(Category.id==1).one()[0]
-              'category': type
+              'current_category': type
           }
 
 
@@ -209,6 +233,17 @@ def create_app(test_config=None):
   one question at a time is displayed, the user is allowed to answer
   and shown whether they were correct or not. 
   '''
+  # @app.route('/quizzes', methods=['POST'])
+  # def play_quizzes():
+
+
+  #     body =  request.get_json()
+
+  #     questions_list = body.get('previous_questions')
+  #     quiz_category = body.get('quiz_category')
+
+  #     if quiz_categ
+  #     for question in question_list
 
   '''
   @TODO: 
@@ -233,5 +268,3 @@ def create_app(test_config=None):
 
   
   return app
-
-    
