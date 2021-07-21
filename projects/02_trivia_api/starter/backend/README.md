@@ -79,17 +79,13 @@ One note before you delve into your tasks: for each endpoint, you are expected t
 
 ## Review Comment to the Students
 ```
-This README is missing documentation of your endpoints. Below is an example for your endpoint to get all categories. Please use it as a reference for creating your documentation and resubmit your code. 
 
 Endpoints
-GET '/api/v1.0/categories'
-GET ...
-POST ...
-DELETE ...
 
-GET '/api/v1.0/categories'
+
+GET '/categories'
 - Fetches a dictionary of categories in which the keys are the ids and the value is the corresponding string of the category
-- Request Arguments: None
+- Request Arguments: None.  NO request JSON required for GET requests.
 - Returns: An object with a single key, categories, that contains a object of id: category_string key:value pairs. 
 {'1' : "Science",
 '2' : "Art",
@@ -98,7 +94,163 @@ GET '/api/v1.0/categories'
 '5' : "Entertainment",
 '6' : "Sports"}
 
+
+GET '/questions?page=<page>'
+- Fetches a paginated set of questions, a total number of questions, all categories and current category string.
+- Request Arguments: page - integer.  NO request JSON required for GET requests.  NOTE: The '?page=' parameter is optional.  If not provided, it returns the first 10 questions from the query results.
+- Returns: An object with 10 paginated questions, total questions, object including all categories, and current category 
+
+{
+  "categories": {
+    "1": "Science", 
+    "2": "Art", 
+    "3": "Geography", 
+    "4": "History", 
+    "5": "Entertainment", 
+    "6": "Sports"
+  }, 
+  "current_category": null, 
+  "questions": [
+    {
+      "answer": "Apollo 13", 
+      "category": 5, 
+      "difficulty": 4, 
+      "id": 2, 
+      "question": "What movie earned Tom Hanks his third straight Oscar nomination, in 1996?"
+    }, 
+    ...
+   
+  ], 
+  "total_questions": 21
+}    
+
+
+GET '/categories/<category id>/questions'
+- Fetches questions for a cateogry specified by id request argument 
+- Request Arguments: category_id - integer.  NO request JSON required for GET requests.
+- Returns: An object with questions for the specified category, total questions, and current category string 
+
+{
+    'questions': [
+        {
+            'id': 1,
+            'question': 'This is a question',
+            'answer': 'This is an answer', 
+            'difficulty': 5,
+            'category': 4
+        },
+    ],
+    'totalQuestions': 100,
+    'currentCategory': 'History'
+}
+
+POST '/questions' 
+- Sends a post request in order to add a new question - requires a request json object.
+- Request Arguments:  None.  But this POST request requires a request JSON containing details of the new question to be added 
+{
+    'question':  'Heres a new question string',
+    'answer':  'Heres a new answer string',
+    'difficulty': 1,
+    'category': 3,
+}
+
+- Returns:  
+a. If request passes, it returns "success" status of True.
+{
+    "success": True
+}
+
+b. If request fails, it returns "success" status of False and HTTP Error Code returned with a corresponding error message
+{
+    "error": <HTTP Error Code>,
+    "message": "<error message>",
+    "success": False
+    "
+}
+
+
+POST '/questions'
+- Same API route as posting new questions, but this one sends a post request to search for a specific question by search term.
+- Request argument:  None, but this POST request requires a JSON BODY containing the word or phrase to be searched
+{
+    'searchTerm': 'discovered'
+}
+- Returns: 
+a. If one or more questions meet the search criteria, a list of 'questions' is provided along with 'total_questions' showing the number of questions retrieved - note that 'current_category' always returns "null".
+{
+    'questions': [
+        {
+            'id': 1,
+            'question': 'This is a question',
+            'answer': 'This is an answer', 
+            'difficulty': 5,
+            'category': 5
+        },
+    ],
+    'totalQuestions': 100,
+    'currentCategory': 'null'
+}
+
+b. If no search criteria found, question array is empty and 'total_questions' return 0. Note that "current_category" always returns 'null'.
+{
+  "current_category": null, 
+  "questions": [], 
+  "total_questions": 0
+}
+
+
+POST '/quizzes'
+- Sends a post request in order to get the next question 
+- Request Arguments:  None; this POST requests requires a list of question ids for 'previous_questions' and quiz_category as follows:
+
+a.  to play quizzes for questions for a PARTICULAR category ('previous_questions' may contain an empty list):
+{ 
+    "previous_questions" :[2, 16,21], 
+    "quiz_category":{"id":1, "type": "Science"}}
+
+b.  to play quizzes for questions for ALL categories, the quiz_category needs to contain only {"id":0 } - id of 0 indicates ALL categories (('previous_questions' may contain an empty list):)
+{ 
+    "previous_questions" :[], 
+    "quiz_category":{"id":0}}
+
+
+{'previous_questions':  an array of question id's such as [1, 4, 20, 15]
+'quiz_category': a string of the current category }
+
+- Returns: a single new question object 
+{
+    "question": {
+        "answer": "Edward Scissorhands", 
+        "category": 5, 
+        "difficulty": 3, 
+        "id": 6, 
+        "question": "What was the title of the 1990 fantasy directed by Tim Burton about a young man with multi-bladed appendages?"
+    }
+}
+
+
+DELETE '/questions/<id>'
+- Deletes a specified question using the id of the question. NO REQUEST JSON REQUIRED.
+- Request Arguments: id - integer.  No request JSON required for DELETE requests.
+- Returns: 
+
+a. if successful delete,  only the "success" status is returned
+
+{
+    "success": True
+}
+
+b. If request fails, it returns "success" status of False and HTTP Error Code returned with a corresponding error message
+{
+    "error": <HTTP Error Code>,
+    "message": "<error message>",
+    "success": False
+    "
+}
+
 ```
+
+
 
 
 ## Testing

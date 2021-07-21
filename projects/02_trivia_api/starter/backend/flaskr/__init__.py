@@ -226,15 +226,14 @@ def create_app(test_config=None):
         else:
             # filter questions by quiz_category.id AND include only questions not in prev_questions
             test_questions  = [q for q in  Question.query.filter(Question.category==quiz_category["id"]).
-                                                            filter(Question.id.notin_(prev_questions)).
-                                                            order_by(Question.id).all()]
+                                                          filter(Question.id.notin_(prev_questions)).
+                                                          order_by(Question.id).all()]
 
         
         
         question = random.choice(test_questions).format() if len(test_questions) else None
 
         return jsonify({
-                "success": True,
                 "question": question
         })
 
@@ -244,6 +243,14 @@ def create_app(test_config=None):
     Create error handlers for all expected errors 
     including 404 and 422. 
     '''
+    @app.errorhandler(400)
+    def not_found(error):
+        return jsonify({
+        "success": False,
+        "error": 400,
+        "message": "Bad Request"
+        }), 400
+
     @app.errorhandler(404)
     def not_found(error):
         return jsonify({

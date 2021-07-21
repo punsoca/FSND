@@ -27,6 +27,7 @@ class TriviaTestCase(unittest.TestCase):
             self.db.create_all()
 
         self.question_bad_data = {
+            # bad data with question field containing spaces, this will be rejected
             "question" : " ",
             "answer" : "bad data",
             "difficulty" : 1,
@@ -39,6 +40,27 @@ class TriviaTestCase(unittest.TestCase):
             "difficulty" : 1,
             "category" : 1
         }
+
+        self.search_term_ok = {
+            "searchTerm": "a"
+        }
+
+        self.search_term_return_empty = {
+            "searchTerm": "1234567890"
+        }
+
+        self.quiz_category_specific =  {
+            # passing a list of previous_questions and a specific quiz category
+            "previous_questions" :[1, 2, 3],
+            "quiz_category":{"id":5, "type":"Entertainment"}
+        }
+
+        self.quiz_category_all  =  {
+            # passing a quiz category id of zero, which should get ALL questions from EVERY category
+            "previous_questions" :[1, 2, 3],
+            "quiz_category":{"id":0}
+        }
+
 
 
     def tearDown(self):
@@ -76,6 +98,31 @@ class TriviaTestCase(unittest.TestCase):
         self.assertTrue(data['categories'])
         self.assertEqual(data['success'], True)
 
+    def test_get_category_questions_pass(self):
+        cat = Category.query.order_by(Category.id).first()
+        res = self.client().get('/categories/{}/questions'.format(str(cat.id)))
+        data = json.loads(res.data)
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(data['current_category'], cat.type)
+        self.assertTrue(data['questions'])
+        self.assertTrue(data['total_questions'])
+
+    def test_search_question_OK_200(self):
+        res = self.client().post('/questions', json=self.search_term_ok)
+        data = json.loads(res.data)
+        self.assertEqual(res.status_code, 200)
+        self.assertTrue(data["questions"])
+        self.assertTrue(data["total_questions"])
+        self.assertEqual(data["current_category"], None)
+
+    def test_search_question_return_empty(self):
+        res = self.client().post('/questions', json=self.search_term_return_empty)
+        data = json.loads(res.data)
+        self.assertEqual(res.status_code, 200)
+        self.assertFalse(data["questions"])
+        self.assertFalse(data["total_questions"])
+        self.assertEqual(data["current_category"], None)
+
     def test_create_question_good_data_200(self):
         res = self.client().post('/questions', json=self.question_good_data)
         data = json.loads(res.data)
@@ -83,7 +130,30 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(res.status_code, 200)
         self.assertEqual(data["success"],True)
 
+    def test_play_quiz_category_specific(self):
+
+        res = self.client().post('/quizzes', json=self.quiz_category_specific)
+        data = json.loads(res.data)
+        category_id = self.quiz_category_specific["quiz_category"]["id"]
+
+        self.assertEqual(res.status_code, 200)
+        self.assertTrue(len(data["question"]), 1)
+        self.assertEqual(data["question"]["category"], category_id)
+
+    def test_play_quiz_category_all(self):
+
+        res = self.client().post('/quizzes', json=self.quiz_category_all)
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 200)
+        self.assertTrue(len(data["question"]), 1)
+        # assert that our input JSON is passing category id value of 0 (i.e., get "ALL" categories)
+        self.assertEqual(self.quiz_category_all["quiz_category"]["id"], 0)
+        # assert that the response JSON's question has a "category" value NOT EQUAL to category_id value in our input json 
+        self.assertNotEqual(data["question"]["category"], self.quiz_category_all["quiz_category"]["id"])
+
     def test_create_question_bad_data_422(self):
+
         res = self.client().post('/questions', json=self.question_bad_data)
         data = json.loads(res.data)
 
@@ -96,7 +166,8 @@ class TriviaTestCase(unittest.TestCase):
     def test_delete_question_success_200(self):
         question = Question.query.order_by(Question.id.desc()).first()
         question_id_to_delete = question.id
-        res = self.client().delete('/questions/{}.format(str(question_id_to_delete))')
+        # res = self.client().delete('/questions/{}.format(str(question_id_to_delete))')
+        res = self.client().delete('/questions/{}'.format(str(question_id_to_delete)))
         data = json.loads(res.data)
 
         self.assertEqual(res.status_code, 200)
