@@ -23,7 +23,8 @@ export class DrinkMenuPage implements OnInit {
   }
 
   async openForm(activedrink: Drink = null) {
-    if (!this.auth.can('get:drinks-detail')) {
+    // if (!this.auth.can('get:drinks-detail')) {  # replace this with below per https://knowledge.udacity.com/questions/256362
+    if (!this.auth.can('post:drinks')) {
       return;
     }
 

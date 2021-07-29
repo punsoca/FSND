@@ -100,7 +100,7 @@ def post_drink(payload):
         return jsonify({
             "success": False,
             "error": 422,
-            "message": "Title and recipe are required"
+            "message": "Title and recipe data are required"
         }), 422
 
 '''
@@ -120,6 +120,9 @@ def patch_drink(payload,drink_id):
 
     drink = Drink.query.get(drink_id)
 
+    print(f'\n\n Original values: drink.id={drink.id}\tdrink.title={drink.title}\tdrink.recipe={drink.recipe}')
+    print(f'type(drink.recipe) = {type(drink.recipe)}\n\n')
+
     if not drink:
         return jsonify({
             "success": False,
@@ -128,19 +131,13 @@ def patch_drink(payload,drink_id):
         }), 404
 
     body = request.get_json()
-    title = body.get('title', None)
-    recipe = body.get('recipe', None)
 
-    if title and recipe:   # only process if title AND recipe are populated
-        drink = Drink(
-            title=title,
-            recipe=json.dumps(recipe)  # need to convert the dict to a STRING or it fails!
-        )
-
+    if body.get('title') and body.get('recipe'):   # only process if title AND recipe data is available from request json
         try:
+            drink.title = body.get('title')
+            drink.recipe = json.dumps(body.get('recipe'))
             drink.update()
-            
-            print('\n\nUpdate success\n\n')
+
             return jsonify({
                 "status": 200,
                 "drinks": drink.long()
@@ -149,6 +146,14 @@ def patch_drink(payload,drink_id):
 
         except Exception as e:
             abort(422)
+
+    else:
+        return jsonify({
+            "success": False,
+            "error": 400,
+            "message": "Title and recipe data are required"
+        }), 400
+
 
 '''
 @TODO implement endpoint
@@ -179,9 +184,12 @@ def delete_drink(payload,drink_id):
         "delete": drink_id
 
             })
+
+
 # Error Handling
 '''
-Example error handling for unprocessable entity
+@TODO implement error handler for 404
+    error handler should conform to general task above
 '''
 
 @app.errorhandler(404)
@@ -191,6 +199,7 @@ def unprocessable(error):
         "error": 404,
         "message": "Drink not found"
     }), 404
+
 
 @app.errorhandler(422)
 def unprocessable(error):
@@ -202,23 +211,14 @@ def unprocessable(error):
 
 
 '''
-@TODO implement error handlers using the @app.errorhandler(error) decorator
-    each error handler should return (with approprate messages):
-             jsonify({
-                    "success": False,
-                    "error": 404,
-                    "message": "resource not found"
-                    }), 404
-
-'''
-
-'''
-@TODO implement error handler for 404
-    error handler should conform to general task above
-'''
-
-
-'''
 @TODO implement error handler for AuthError
     error handler should conform to general task above
 '''
+@app.errorhandler(AuthError)
+def handle_auth_error(e):
+    """
+    Receive the raised authorization error and propagates it as response
+    """
+    response = jsonify(e.error)
+    response.status_code = e.status_code
+    return response
