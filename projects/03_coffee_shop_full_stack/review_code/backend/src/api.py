@@ -18,7 +18,7 @@ CORS(app)
 !! NOTE THIS MUST BE UNCOMMENTED ON FIRST RUN
 !! Running this funciton will add one
 '''
-# db_drop_and_create_all()
+db_drop_and_create_all()
 
 # ROUTES
 '''
@@ -87,11 +87,11 @@ def post_drink(payload):
         try:
             drink.insert()
 
+            drinks = list(map(Drink.long, Drink.query.all()))
             return jsonify({
                 "status": 200,
-                "drinks": drink.long()
-
-            })
+                "drinks": drinks
+            }), 200
 
         except Exception as e:
             abort(422)
@@ -120,9 +120,6 @@ def patch_drink(payload,drink_id):
 
     drink = Drink.query.get(drink_id)
 
-    print(f'\n\n Original values: drink.id={drink.id}\tdrink.title={drink.title}\tdrink.recipe={drink.recipe}')
-    print(f'type(drink.recipe) = {type(drink.recipe)}\n\n')
-
     if not drink:
         return jsonify({
             "success": False,
@@ -132,27 +129,24 @@ def patch_drink(payload,drink_id):
 
     body = request.get_json()
 
-    if body.get('title') and body.get('recipe'):   # only process if title AND recipe data is available from request json
-        try:
-            drink.title = body.get('title')
-            drink.recipe = json.dumps(body.get('recipe'))
-            drink.update()
+    # updated to specify title or recipe for patch 
+    if body.get('title'):
+        drink.title = body.get('title')
+    
+    if body.get('recipe'):
+        drink.recipe = json.dumps(body.get('recipe'))
+    
+    try:
+        drink.update()
 
-            return jsonify({
-                "status": 200,
-                "drinks": drink.long()
-
-            })
-
-        except Exception as e:
-            abort(422)
-
-    else:
         return jsonify({
-            "success": False,
-            "error": 400,
-            "message": "Title and recipe data are required"
-        }), 400
+            "status": 200,
+            "drinks": [drink.long()]
+
+        }),200
+
+    except Exception as e:
+        abort(422)
 
 
 '''
