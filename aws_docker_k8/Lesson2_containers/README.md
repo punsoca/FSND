@@ -52,7 +52,7 @@ where, --rm option ensures that the container is removed when it exits.
     docker container rm <container_ID or container_NAME>
 
 
-# Exercise 2: Flask Example #
+# Exercise 2: Flask
 In this example, you will containerize a flask app by following the steps below:
 
 Fork and clone the repo
